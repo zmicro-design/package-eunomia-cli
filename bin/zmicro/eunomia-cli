@@ -1,0 +1,17 @@
+#!/bin/bash
+
+help() {
+  echo "Usage:"
+  echo "  zmicro eunomia-cli <args ...>"
+  echo ""
+}
+
+core() {
+  eunomia-cli "$@"
+}
+
+run() {
+  core "$@"
+}
+
+run "$@"
