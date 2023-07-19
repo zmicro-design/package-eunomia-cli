@@ -21,13 +21,14 @@ install() {
   local name="eunomia-cli"
 
   local tmp_file=/tmp/$name.tar.gz
-  local url="http://10.27.249.150:8888/eunomia/shared/raw/master/$name/$name-${os}-${arch}.tgz"
+  local version=$(curl http://10.27.249.150:8888/eunomia/shared/raw/master/$name/version)
+  local url="http://10.27.249.150:8888/eunomia/shared/raw/master/$name/$name_${version#v}_${os}_${arch}.tar.gz"
   os::curl -fSL $url -o $tmp_file
 
   cd /tmp
   tar -zxvf $tmp_file >>/dev/null 2>&1
 
-  sudo mv bin/$name-${os}-${arch} $bin_path/$name
+  sudo mv ./$name $bin_path/$name
 
   rm -rf $tmp_file
 }
