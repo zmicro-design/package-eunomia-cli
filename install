@@ -22,7 +22,8 @@ install() {
 
   local tmp_file=/tmp/$name.tar.gz
   local version=$(curl http://10.27.249.150:8888/eunomia/shared/raw/master/$name/version)
-  local url="http://10.27.249.150:8888/eunomia/shared/raw/master/$name/$name_${version#v}_${os}_${arch}.tar.gz"
+  local url="http://10.27.249.150:8888/eunomia/shared/raw/master/$name/${name}_${version#v}_${os}_${arch}.tar.gz"
+  log::info "downloading version: $version ..."
   os::curl -fSL $url -o $tmp_file
 
   cd /tmp
