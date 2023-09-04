@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export PACKAGE_CORE_NAME="eunomia-cli"
+export PACKAGE_CORE_ORG="go-zoox"
+export PACKAGE_CORE_BIN_NAME="$PACKAGE_CORE_NAME"
+export PACKAGE_CORE_VERSION=v1.4.5
+
+export PACKAGE_CORE_GIT_REPOSITORY="https://github.com/${PACKAGE_CORE_ORG}/${PACKAGE_CORE_NAME}"
+
+export PACKAGE_CORE_GIT_REPO="http://10.27.249.150:8888/eunomia/shared"
+export PACKAGE_CORE_RELEASE_DOWNLOAD="${PACKAGE_CORE_GIT_REPO}/raw/master"
+export PACKAGE_CORE_LATEST_VERSION="${PACKAGE_CORE_GIT_REPO}/raw/master/${PACKAGE_CORE_NAME}/version"

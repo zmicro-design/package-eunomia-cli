@@ -1,57 +1,63 @@
 #!/bin/bash
 
-set -e
-
-help() {
-  echo "Usage:"
-  echo "  zmicro package install eunomia-cli <args...>"
-  echo ""
-}
-
 install() {
-  local arch="$(os::arch)"
-  local os="linux"
-  local bin_path=/usr/bin
+  # prepare vars
+  local name="$PACKAGE_CORE_NAME"
 
-  if [ "$(os::is_macos)" = "true" ]; then
-    os="darwin"
-    bin_path=/usr/local/bin
+  log::info "[$(timestamp)][package][$name] preparing ..."
+
+  # get system os/arch
+  local arch="$PACKAGE_OS_ARCH"
+  local kernel="$PACKAGE_OS_KERNEL"
+  local platform="$PACKAGE_OS_PLATFORM"
+  # usr_bin_dir
+  local usr_bin_dir="$PACKAGE_USER_BIN_DIR"
+  local tmp_dir="$PACKAGE_TMP_DIR"
+
+  if [ "$PLUGIN_PACKAGE_NO_CHECK_LATEST" != "true" ]; then
+    # get latest version
+    log::info "[$(timestamp)][package][$name] checking latest version ..."
+    local latest_version=$(curl $PACKAGE_CORE_LATEST_VERSION)
+    if [ "$?" != "0" ]; then
+      log::error "[$(timestamp)][package][$name] failed to get latest version ."
+      return 1
+    fi
+    PACKAGE_CORE_VERSION=$latest_version
+    log::success "[$(timestamp)][package][$name] latest version: $PACKAGE_CORE_VERSION"
   fi
 
-  local name="eunomia-cli"
+  # files
+  local tmp_file="$name.tar.gz"
+  local bin_file="./$name"
 
-  local tmp_file=/tmp/$name.tar.gz
-  local version=$(curl http://10.27.249.150:8888/eunomia/shared/raw/master/$name/version)
-  local url="http://10.27.249.150:8888/eunomia/shared/raw/master/$name/${name}_${version#v}_${os}_${arch}.tar.gz"
-  log::info "downloading version: $version ..."
-  os::curl -fSL $url -o $tmp_file
+  # prepare context
+  cd $tmp_dir
 
-  cd /tmp
-  tar -zxvf $tmp_file >>/dev/null 2>&1
+  # reference: https://github.com/go-zoox/gzterminal/releases
+  # example:
+  #   http://10.27.249.150:8888/eunomia/shared/raw/master/eunomia-cli/v1.4.6/eunomia-cli_1.4.6_darwin_amd64.tar.gz
+  #   http://10.27.249.150:8888/eunomia/shared/raw/master/eunomia-cli/v1.4.6/eunomia-cli_1.4.6_darwin_arm64.tar.gz
+  #   http://10.27.249.150:8888/eunomia/shared/raw/master/eunomia-cli/v1.4.6/eunomia-cli_1.4.6_linux_amd64.tar.gz
+  #   http://10.27.249.150:8888/eunomia/shared/raw/master/eunomia-cli/v1.4.6/eunomia-cli_1.4.6_linux_arm64.tar.gz
+  # generate url
+  local url="${PACKAGE_CORE_RELEASE_DOWNLOAD}/$PACKAGE_CORE_VERSION/${name}_${PACKAGE_CORE_VERSION#v}_${platform}_${arch}.tar.gz"
+  log::debug "[$(timestamp)][package][$name][$kernel][$arch] url: $url, file: ${tmp_file}, tmp_dir: $tmp_dir"
 
-  sudo mv ./$name $bin_path/$name
+  # download
+  log::info "[$(timestamp)][package][$name] downloading ..."
+  os::download $tmp_file $url
 
-  rm -rf $tmp_file
+  # extract
+  log::info "[$(timestamp)][package][$name] extracting ..."
+  os::extract $tmp_file
+
+  # install
+  log::info "[$(timestamp)][package][$name] installing ..."
+  os::install $bin_file $usr_bin_dir
+
+  # clean
+  log::info "[$(timestamp)][package][$name] cleaning ..."
+  rm -rf $tmp_dir
 }
 
-core() {
-  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    help
-    exit 0
-  fi
-
-  install
-  if [ $? -eq 0 ]; then
-    log::success "install eunomia-cli success."
-    exit 0
-  else
-    log::error "install eunomia-cli failed."
-    exit 1
-  fi
-}
-
-run() {
-  core $@
-}
-
-run $@
+export -f install
